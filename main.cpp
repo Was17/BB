@@ -1,14 +1,14 @@
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <stdio.h>
-
+#include <math.h>
 void initFunc();
 void funReshape(int w, int h);
 void funDisplay();
-void drawMolino();
-void drawTriangulo(char color);
 void funKeyboard(int key, int x, int y);
-void repeat();
+void mano();
+void brazo();
+void cilindro();
 using namespace std;
 
 // Variables globales
@@ -19,65 +19,92 @@ GLfloat rotY =  0.0f;
 
 GLfloat rotZ =  0.0f;
 void mano(){
-    glRotatef(rotY,0,1,1);
+   
+   
     glPushMatrix();
-   glTranslatef(0, 0, 0.1f);
-    glutWireSphere(0.1,100,10);
+    
+  glTranslatef(0, -0.3, 0);
+      glColor3f(1,1,1);
+     // glRotatef(rotY,0,1,1);
+      
+      glRotatef(180,0,1,0);
+  
+    gluCylinder(gluNewQuadric(),0.1f,0.1f,0.1f,32,32);
      glPopMatrix();
-     glColor3f(0,0,1);
-    gluCylinder(gluNewQuadric(),0.1f,0.01f,0.1f,32,32);
+     
 }
 void biceps(){
+     glPushMatrix();
+      glColor3f(0.0,0.0,1.0);
+      glRotatef(90,1,0,0);
+  
+  gluCylinder(gluNewQuadric(),0.15f,0.1f,0.25f,32,32);
+  glPopMatrix();
     
-    gluCylinder(gluNewQuadric(),0.3f,0.1f,1.0f,32,32);
-       glPushMatrix();
-      glColor3f(1.0,1.0,1.0);
-      glTranslatef(0, 0, -3);
-      glRotatef(90,1,0,0);
-      mano();
-    glPopMatrix();
 }
-
-
-void antebrazo(){
-    glLoadIdentity();
-        glRotatef(rotY,0,1,1);
-   
-        glPushMatrix();
-      glColor3f(0,0.0,1.0);
-      glTranslatef(0, 1, -3);
+void triceps(){
+    
+      glColor3f(1.0,0.0,1.0);
       glRotatef(90,1,0,0);
-      
-      biceps();
-    glPopMatrix();
+  
+      cilindro();
+  
 }
-void aspa(){
-    glLoadIdentity();
-   glPushMatrix();
-	glTranslatef(0, 0.5, -2.9);
+void drawHollowCircle(GLfloat x, GLfloat y, GLfloat radius){
+int i;
+	int triangleAmount = 20; //# of triangles used to draw circle
 	
-        glRotated(rotY, 0,1, 0);
-        glRotated(rotZ * (180.0/46), 0, 0, 1);
-        int i;
-	glColor3f(0.4f, 0.4f, 0.8f);
-	for (i = 0; i < 3; i++) {
-		glRotated(120, 0, 0, 1);  // Note: These rotations accumulate.
-		glBegin(GL_TRIANGLES);
-		glVertex3f(0,0,0);
-		glVertex3f(1.0f, 1,0);
-		glVertex3f(0.5f,1,0);
-		glEnd();
-	}
-           glPopMatrix();}
-
-void drawWindmill() {
-	int i;
-       
-	glColor3f(0.8f, 0.8f, 0.9f);
-	glBegin(GL_POLYGON);
-      
-	gluCylinder(gluNewQuadric(),0.1f,0.1f,1.0f,32,32);
+	//GLfloat radius = 0.8f; //radius
+	GLfloat twicePi = 2.0f * 3.1419;
+	
+	glBegin(GL_TRIANGLE_FAN);
+		glVertex2f(x, y); // center of circle
+		for(i = 0; i <= triangleAmount;i++) { 
+			glVertex2f(
+		            x + (radius * cos(i *  twicePi / triangleAmount)), 
+			    y + (radius * sin(i * twicePi / triangleAmount))
+			);
+		}
 	glEnd();
+}
+void cilindro(){
+    glColor3f(1,0,0);
+     gluCylinder(gluNewQuadric(),0.2f,0.15f,0.5f,32,32);
+     glTranslatef(0,0,0.5);
+     
+    glColor3f(0,1,0);
+     drawHollowCircle(0,0,0.15);
+     glTranslatef(0,0,-0.5);
+     
+    glColor3f(0,0,1);
+     drawHollowCircle(0,0,0.2);
+     glLoadIdentity();
+}
+void fase2(){
+    
+    glTranslatef(0,0,-3);
+    glRotatef(rotY,1,0,0);
+    glPushMatrix();
+    
+  glTranslatef(0, -0.5, 0);
+    glRotatef(rotZ,1,0,0);
+    glPushMatrix();
+  glTranslatef(0, -0.3, 0.1);
+      glColor3f(1,0.3,0.4);
+     // glRotatef(rotY,0,1,1);
+      glRotatef(180,0,1,0);
+    gluCylinder(gluNewQuadric(),0.05f,0.05f,0.5f,32,32);
+    glPopMatrix();
+     mano();
+    biceps();
+    glPopMatrix();
+}
+void fase3(){
+     fase2();
+  
+    
+    triceps();
+   
 }
 int main(int argc, char** argv) {
 
@@ -99,7 +126,6 @@ int main(int argc, char** argv) {
     initFunc();
     
  // Configuración CallBacks
-     glutIdleFunc(repeat);
     glutReshapeFunc(funReshape);
     glutDisplayFunc(funDisplay);
     glutSpecialFunc(funKeyboard);
@@ -153,56 +179,12 @@ void funDisplay() {
     
  // Matriz de Vista V (Cámara)
     // Aquí cargaremos la matriz V
-    
+    fase3();
 
-    
-    antebrazo();
-    
-    
  // Intercambiamos los buffers
     glutSwapBuffers();
     
 }
-void drawPunto(){
-      glPushMatrix();
-   glTranslatef(-0.2f, 0.0f, desZ);
-    glRotatef(-135.0f,0.0f,0.0f,1.0f);
-  glBegin(GL_POINTS);
-    
-     glColor3f(1.0f, 1.0f, 1.0f);
-        glVertex3f( 0.0f,  0.0f, 0.0f);
-       
-
-    glEnd();
-     glPopMatrix();
-}
-void drawMolino(){
- 
-}
-void drawTriangulo(char color) {
-    
-    switch(color) {
-        case 'r':
-            glColor3f(1.0f, 0.0f, 0.0f);
-            break;
-        case 'g':
-            glColor3f(0.0f, 1.0f, 0.0f);
-            break;
-        case 'b':
-            glColor3f(0.0f, 0.0f, 1.0f);
-            break;
-        default:
-            glColor3f(1.0f, 1.0f, 1.0f);            
-    }
-    
-    glBegin(GL_TRIANGLES);
-        glVertex3f(-0.5f, -0.5f, 0.0f);
-        glVertex3f( 0.5f, -0.5f, 0.0f);
-        glVertex3f( 0.0f,  0.5f, 0.0f);
-    glEnd();
-    
-}
-
 void funKeyboard(int key, int x, int y) {
     
     switch(key) {
@@ -212,6 +194,9 @@ void funKeyboard(int key, int x, int y) {
             }
             desZ -= 0.1f;
               rotZ-=5.0f;
+              if( rotZ<=-90){
+                  rotZ=0.0f;
+              }
             break;
           
             
@@ -226,6 +211,9 @@ void funKeyboard(int key, int x, int y) {
             desZ += 0.1f;
             
             rotZ+=5.0f;
+             if( rotZ>=0){
+                  rotZ=0.0f;
+              }
             break;
         default:
             desZ = -5.0f;  
